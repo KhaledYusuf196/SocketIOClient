@@ -16,16 +16,21 @@ public class ClientManager : MonoBehaviour
     public const string EVENT_CONNECT = "connect";
     public const string EVENT_DISCONNECT = "close";
     public const string EVENT_SETNAME = "setName";
+    public const string EVENT_SETMOVE = "setMove";
     public const string EVENT_REGISTERED = "registered";
     public const string EVENT_NEWPLAYER = "newPlayer";
     public const string EVENT_REMOVEPLAYER = "removePlayer";
+    public const string EVENT_DISABLECONTROLS = "disableControls";
+    public const string EVENT_DRAW = "Draw";
+    public const string EVENT_WIN = "Win";
+    public const string EVENT_LOSE = "Lose";
     static ClientManager instance;
     private string playerName;
     private string id;
     Dictionary<string, PlayerData> players;
+    public static ClientManager Instance => instance;
 
     // Start is called before the first frame update
-    public static ClientManager Instance => instance;
     void Start()
     {
         players = new Dictionary<string, PlayerData>();
@@ -35,9 +40,18 @@ public class ClientManager : MonoBehaviour
         sIO.On(EVENT_REGISTERED, OnRegistered);
         sIO.On(EVENT_NEWPLAYER, OnNewPlayer);
         sIO.On(EVENT_REMOVEPLAYER, OnRemovePlayer);
+        sIO.On(EVENT_DISABLECONTROLS, OnDisableControls);
+        sIO.On(EVENT_DRAW, OnDraw);
+        sIO.On(EVENT_WIN, OnWin);
+        sIO.On(EVENT_LOSE, OnLose);
     }
 
     
+
+    private void OnDisableControls(SocketIOEvent obj)
+    {
+        UIManager.Instance.DisableControls();
+    }
 
     private void Awake()
     {
@@ -69,6 +83,12 @@ public class ClientManager : MonoBehaviour
         this.playerName = playerName;
         Dictionary<string, string> jsonData = new Dictionary<string, string> { { "playerName", playerName } };
         sIO.Emit(EVENT_SETNAME, new JSONObject(jsonData));
+    }
+
+    public void SetMove(int move)
+    {
+        Dictionary<string, string> jsonData = new Dictionary<string, string>() { { "PlayerId", id}, { "Move", move.ToString()} };
+        sIO.Emit(EVENT_SETMOVE, new JSONObject(jsonData));
     }
     
     #region SocketIO Events
@@ -111,6 +131,30 @@ public class ClientManager : MonoBehaviour
         if(players.ContainsKey(obj.data.GetField("PlayerId").str))
             players.Remove(obj.data.GetField("PlayerId").str);
         Debug.Log("Remove Player " + players.Count);
+    }
+
+    private void OnLose(SocketIOEvent obj)
+    {
+        string myMove = obj.data.GetField("myMove").str;
+        string otherMove = obj.data.GetField("otherMove").str;
+        UIManager.Instance.showLose(myMove, otherMove);
+        UIManager.Instance.EnableControls();
+    }
+
+    private void OnWin(SocketIOEvent obj)
+    {
+        string myMove = obj.data.GetField("myMove").str;
+        string otherMove = obj.data.GetField("otherMove").str;
+        UIManager.Instance.showWin(myMove, otherMove);
+        UIManager.Instance.EnableControls();
+    }
+
+    private void OnDraw(SocketIOEvent obj)
+    {
+        string myMove = obj.data.GetField("myMove").str;
+        string otherMove = obj.data.GetField("otherMove").str;
+        UIManager.Instance.showDraw(myMove, otherMove);
+        UIManager.Instance.EnableControls();
     }
 
     #endregion
