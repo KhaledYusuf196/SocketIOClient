@@ -86,7 +86,6 @@ public class ClientManager : MonoBehaviour
 
     private void OnRegistered(SocketIOEvent obj)
     {
-        Debug.Log(obj.data);
         id = obj.data.GetField("PlayerId").str;
         List<string> playerids = obj.data.GetField("Players").keys;
         foreach (var id in playerids)
@@ -95,6 +94,7 @@ public class ClientManager : MonoBehaviour
             players[id] = new PlayerData() { PlayerId = id, playerName = Name };
         }
 
+        Debug.Log("Registered " + players.Count);
 
     }
 
@@ -103,11 +103,14 @@ public class ClientManager : MonoBehaviour
         string ID = obj.data.GetField("PlayerData").GetField("id").str;
         string Name = obj.data.GetField("PlayerData").GetField("playerName").str;
         players.Add(ID, new PlayerData() { PlayerId = ID, playerName = Name});
+        Debug.Log("New Player " + players.Count);
     }
 
     private void OnRemovePlayer(SocketIOEvent obj)
     {
-        players.Remove(obj.data.GetField("PlayerId").str);
+        if(players.ContainsKey(obj.data.GetField("PlayerId").str))
+            players.Remove(obj.data.GetField("PlayerId").str);
+        Debug.Log("Remove Player " + players.Count);
     }
 
     #endregion
