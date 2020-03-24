@@ -64,16 +64,16 @@ public class UIManager : MonoBehaviour
 
     public void DisableControls()
     {
-        rock.enabled = false;
-        scissors.enabled = false;
-        paper.enabled = false;
+        rock.interactable = false;
+        scissors.interactable = false;
+        paper.interactable = false;
     }
     
     public void EnableControls()
     {
-        rock.enabled = true;
-        scissors.enabled = true;
-        paper.enabled = true;
+        rock.interactable = true;
+        scissors.interactable = true;
+        paper.interactable = true;
     }
 
     internal void showLose(string myMove, string otherMove)

@@ -26,7 +26,7 @@ public class ClientManager : MonoBehaviour
     public const string EVENT_LOSE = "Lose";
     static ClientManager instance;
     private string playerName;
-    private string id;
+    private string playerID;
     Dictionary<string, PlayerData> players;
     public static ClientManager Instance => instance;
 
@@ -87,7 +87,7 @@ public class ClientManager : MonoBehaviour
 
     public void SetMove(int move)
     {
-        Dictionary<string, string> jsonData = new Dictionary<string, string>() { { "PlayerId", id}, { "Move", move.ToString()} };
+        Dictionary<string, string> jsonData = new Dictionary<string, string>() { { "PlayerId", playerID}, { "Move", move.ToString()} };
         sIO.Emit(EVENT_SETMOVE, new JSONObject(jsonData));
     }
     
@@ -95,18 +95,20 @@ public class ClientManager : MonoBehaviour
     private void OnDisconnect(SocketIOEvent obj)
     {
         Debug.Log("Disconnected from server");
-        
+        UIManager.Instance.DisableControls();
+        players.Clear();
     }
 
     private void OnConnected(SocketIOEvent obj)
     {
         Debug.Log("Connected to server");
+        UIManager.Instance.EnableControls();
         ChangeName(playerName);
     }
 
     private void OnRegistered(SocketIOEvent obj)
     {
-        id = obj.data.GetField("PlayerId").str;
+        playerID = obj.data.GetField("PlayerId").str;
         List<string> playerids = obj.data.GetField("Players").keys;
         foreach (var id in playerids)
         {
@@ -122,7 +124,7 @@ public class ClientManager : MonoBehaviour
     {
         string ID = obj.data.GetField("PlayerData").GetField("id").str;
         string Name = obj.data.GetField("PlayerData").GetField("playerName").str;
-        players.Add(ID, new PlayerData() { PlayerId = ID, playerName = Name});
+        players[ID] = new PlayerData() { PlayerId = ID, playerName = Name};
         Debug.Log("New Player " + players.Count);
     }
 
